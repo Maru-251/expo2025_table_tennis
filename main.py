@@ -329,3 +329,28 @@ async def delete_note(
     session.delete(db_note)
     session.commit()
     return {"ok": True}
+
+
+@app.get("/api/all_notes", response_model=List[Note])
+async def list_all_notes(
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user),
+):
+    """Return notes from all users for browsing."""
+    db_notes = session.exec(select(Note)).all()
+    users = session.exec(select(User)).all()
+    user_map = {u.id: u.username for u in users}
+    return [
+        Note(**n.dict(exclude={"author"}), author=user_map.get(n.owner_id))
+        for n in db_notes
+    ]
+
+
+@app.get("/public", response_class=HTMLResponse)
+async def public_notes_page(
+    request: Request,
+    current_user: User = Depends(get_current_user),
+):
+    return templates.TemplateResponse(
+        "public.html", {"request": request, "username": current_user.username}
+    )

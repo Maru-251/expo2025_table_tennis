@@ -80,6 +80,8 @@ def test_auth_failure(client):
     # no token
     resp = client.get("/api/notes")
     assert resp.status_code == 401
+    resp = client.get("/api/all_notes")
+    assert resp.status_code == 401
 
     # create user and note
     client.post("/register", data={"username": "alice", "password": "a"})
@@ -93,3 +95,22 @@ def test_auth_failure(client):
 
     resp = client.delete(f"/api/notes/{note_id}", headers=auth_header(token2))
     assert resp.status_code == 403
+
+
+def test_view_all_notes(client):
+    client.post("/register", data={"username": "alice", "password": "a"})
+    token_a = get_token(client, "alice", "a")
+    client.post("/register", data={"username": "bob", "password": "b"})
+    token_b = get_token(client, "bob", "b")
+
+    note1 = {"category": "観光地", "title": "t1", "description": "d1"}
+    client.post("/api/notes", json=note1, headers=auth_header(token_a))
+    note2 = {"category": "食事", "title": "t2", "description": "d2"}
+    client.post("/api/notes", json=note2, headers=auth_header(token_b))
+
+    resp = client.get("/api/all_notes", headers=auth_header(token_a))
+    assert resp.status_code == 200
+    notes = resp.json()
+    assert len(notes) == 2
+    authors = {n["author"] for n in notes}
+    assert {"alice", "bob"} == authors
