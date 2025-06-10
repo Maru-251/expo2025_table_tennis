@@ -270,7 +270,10 @@ async def list_notes(
     db_notes = session.exec(
         select(Note).where(Note.owner_id == current_user.id)
     ).all()
-    return [Note(**n.dict(), author=current_user.username) for n in db_notes]
+    return [
+        Note(**n.dict(exclude={"author"}), author=current_user.username)
+        for n in db_notes
+    ]
 
 
 @app.post("/api/notes", response_model=Note)
@@ -281,10 +284,11 @@ async def create_note(
 ):
     note.id = None
     note.owner_id = current_user.id
+    note.author = None
     session.add(note)
     session.commit()
     session.refresh(note)
-    return Note(**note.dict(), author=current_user.username)
+    return Note(**note.dict(exclude={"author"}), author=current_user.username)
 
 
 @app.put("/api/notes/{note_id}", response_model=Note)
@@ -308,7 +312,7 @@ async def update_note(
     session.add(db_note)
     session.commit()
     session.refresh(db_note)
-    return Note(**db_note.dict(), author=current_user.username)
+    return Note(**db_note.dict(exclude={"author"}), author=current_user.username)
 
 
 @app.delete("/api/notes/{note_id}")
