@@ -397,7 +397,8 @@ class Note(SQLModel, table=True):
     title: str
     description: str
     owner_id: Optional[int] = Field(default=None, foreign_key="user.id")
-    author: str  # ── API レスポンス専用。DB には保存しない
+    # API レスポンス専用。DB には保存しない
+    author: Optional[str] = Field(default=None, sa_column=None)
 
 
 # =============================================================================
@@ -584,10 +585,10 @@ async def list_notes(
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user),   # 認証必須
 ):
-    notes = session.exec(select(Note).where(Note.owner_id == current_user.id)).all()
-    return session.exec(
+    db_notes = session.exec(
         select(Note).where(Note.owner_id == current_user.id)
     ).all()
+    return [Note(**n.dict(), author=current_user.username) for n in db_notes]
 
 
 @app.post("/api/notes", response_model=Note)
@@ -598,11 +599,10 @@ async def create_note(
 ):
     note.id = None
     note.owner_id = current_user.id
-    note.author = current_user.username
     session.add(note)
     session.commit()
     session.refresh(note)
-    return note
+    return Note(**note.dict(), author=current_user.username)
 
 
 @app.put("/api/notes/{note_id}", response_model=Note)
@@ -626,7 +626,7 @@ async def update_note(
     session.add(db_note)
     session.commit()
     session.refresh(db_note)
-    return db_note
+    return Note(**db_note.dict(), author=current_user.username)
 
 
 @app.delete("/api/notes/{note_id}")
