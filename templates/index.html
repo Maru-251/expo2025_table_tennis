@@ -1,0 +1,347 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <title>万博まとめサイト</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&family=Poppins:wght@600&display=swap" rel="stylesheet">
+  <!-- Bootstrap 5  +  Bootstrap Icons（追加ボタンのアイコン用に）-->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+
+<body class="bg-light">
+<div class="title-band container-fluid text-center px-0 position-relative">         <!-- 背景画像の設定はこのまま -->
+  <h1 class="my-0 mx-5">万博&大阪旅行メモ</h1>
+
+  <!-- ★ 追加：ヘッダ右端リンク -->
+    <nav class="header-links d-flex flex-column flex-md-row gap-2 justify-content-center justify-content-md-end">
+    <a href="/tickets" class="btn btn-outline-light btn-md me-2">チケット</a>
+    <a href="/access"  class="btn btn-outline-light btn-md">アクセス</a>
+    </nav>
+    
+  <p class="welcome-msg text-white position-absolute start-0 bottom-0 ms-3 mb-2">
+    ようこそ、{{ username }}さん！
+  </p>
+</div>
+
+
+<div class="container py-5">            <!-- w-75 を外しフル幅寄りに -->
+  <div class="row g-4 align-items-start">
+
+    <!-- ───── 左カラム ───── -->
+    <div class="col-md-6 col-lg-6">
+
+      <!-- 基本情報 -->
+      <div class="mb-3">
+        <p class="fs-5"><i class="bi bi-calendar-month me-1"></i>日程: <strong>{{ expo_info.open_day if expo_info else '2025/8/23, 8/25' }}</strong></p>
+        <p class="fs-5"><i class="bi bi-map me-1"></i>会場: <strong>{{ expo_info.venue if expo_info else '' }}</strong></p>
+      </div>
+
+      <!-- 画像プレビュー & DL アイコン（前回実装そのまま） -->
+      <div class="mb-4">
+        <div class="position-relative d-inline-block">
+          <a href="/static/expo_map.jpeg"
+             download="expo_map.jpeg"
+             class="download-icon position-absolute top-0 end-0 m-2"
+             onclick="event.stopPropagation()"
+             data-bs-toggle="tooltip" data-bs-placement="left"
+             data-bs-title="画像をダウンロード">
+            <i class="bi bi-download"></i>
+          </a>
+
+        <img id="previewImage" src="/static/expo_map.jpeg"
+             class="img-fluid rounded shadow-lg transition w-100"
+             style="cursor:pointer;">
+        </div>
+      </div>
+    </div>
+
+    <!-- ───── 右カラム ───── -->
+    <div class="col-md-6 col-lg-6">
+
+      <!-- 見出し＋追加ボタン -->
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="fw-bold text-muted mb-0 fs-3">行きたいところリスト</h2>
+        <button class="btn btn-outline-secondary" id="addBtn">
+        <i class="bi bi-plus-lg me-1"></i> 追加
+        </button>   
+      </div>
+        
+      <!-- ★ カテゴリフィルタ -->
+      <div class="btn-group btn-group-sm mb-3 w-100" id="filterGroup" role="group">
+        <button type="button" class="btn btn-outline-secondary active" data-cat="all">すべて</button>
+        <button type="button" class="btn btn-outline-secondary" data-cat="食事">
+          <i class="bi bi-cup-hot me-1"></i>食事
+        </button>
+        <button type="button" class="btn btn-outline-secondary" data-cat="観光地">
+          <i class="bi bi-suitcase me-1"></i>観光地</button>
+        <button type="button" class="btn btn-outline-secondary" data-cat="パビリオン">
+          <i class="bi bi-bank me-1"></i>パビリオン
+        </button>
+        <button type="button" class="btn btn-outline-secondary" data-cat="その他">その他</button>
+      </div>
+
+      <!-- 一覧テーブル(行きたいところリスト) -->
+        <div class="table-responsive">        <!-- ★ 追加 -->
+        <table class="table table-striped align-middle shadow-sm rounded-3 overflow-hidden mb-5" id="noteTable">
+            <thead class="table-light">
+            <tr>
+                <th style="width:30px;" class="text-center"></th>
+                <th style="width:80px;">タイトル</th>
+                <th style="width:110px;">内容</th>
+                <th style="width:110px;">記入者</th>
+                <th style="width:100px;">操作</th>
+            </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+        </div>
+
+      <!-- Tips -->
+      <h3 class="text-muted mt-10">Tips</h3>
+      <ul>
+        <li><a href="https://more.hpplus.jp/morejapan/news/118051/7/">おすすめの回り方</a></li>
+        <li><a href="https://www.expo2025.or.jp/news/daily/">今週の万博（公式サイト）</a></li>
+        <li>
+            <tr>おすすめアプリ（公式）:</tr>
+            <a href="https://play.google.com/store/apps/details?id=com.nttus.EXPO2025PersonalAgent&hl=en&pli=1"> Google store</a>
+            <tr>  </tr>
+            <a href="https://apps.apple.com/jp/app/expo2025-personal-agent-ai%E3%83%8A%E3%83%93/id6621210768"> App store</a>
+        </li>
+        <li><a href="https://ameblo.jp/taiwan-momo/entry-12902398202.html">持ち物・事前準備</a></li> 
+        <li><a href="https://expo2025.fun/%e3%83%91%e3%83%93%e3%83%aa%e3%82%aa%e3%83%b3%e5%be%85%e3%81%a1%e6%99%82%e9%96%93/">パビリオン待ち時間</a></li> 
+        <li><a href="https://www.expo2025.or.jp/future-index/digital/wireless/">Wifi設定</a></li> 
+      </ul>
+    </div>
+  </div>
+
+  <!-- 画像プレビュー用モーダル（変更なし） -->
+    <div class="modal fade" id="imageModal" tabindex="-1" aria-labelledby="imageModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content bg-dark text-white">
+        <div class="modal-header border-0">
+            <h5 class="modal-title" id="imageModalLabel"></h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="閉じる"></button>
+        </div>
+        <div class="modal-body text-center">
+            <div style="display:inline-block; overflow:hidden;">
+            <img id="modalImage" src="" alt="拡大画像" class="img-fluid rounded">
+            </div>
+        </div>
+        </div>
+    </div>
+    </div>
+
+  <!-- ★ 追加モーダル -->
+  <div class="modal fade" id="addModal" tabindex="-1" aria-labelledby="addModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <form id="addForm">
+          <div class="modal-header">
+            <h5 class="modal-title" id="addModalLabel">メモを追加</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <div class="mb-3">
+              <label for="addCategory" class="form-label">カテゴリ</label>
+              <select id="addCategory" class="form-select" required>
+                <option value="食事">食事</option>
+                <option value="観光地">観光地</option>
+                <option value="パビリオン">パビリオン</option>
+                <option value="その他" selected>その他</option>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label for="addTitle" class="form-label">タイトル</label>
+              <input type="text" id="addTitle" class="form-control" required>
+            </div>
+            <div class="mb-3">
+              <label for="addDescription" class="form-label">内容</label>
+              <input type="text" id="addDescription" class="form-control" required>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">キャンセル</button>
+            <button type="submit" class="btn btn-success">保存</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- ★ 編集モーダル（カテゴリ編集も追加） -->
+  <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <form id="editForm">
+          <div class="modal-header">
+            <h5 class="modal-title" id="editModalLabel">メモを編集</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <input type="hidden" id="editId">
+            <div class="mb-3">
+              <label for="editCategory" class="form-label">カテゴリ</label>
+              <select id="editCategory" class="form-select" required>
+                <option value="食事">食事</option>
+                <option value="観光地">観光地</option>
+                <option value="パビリオン">パビリオン</option>
+                <option value="その他">その他</option>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label for="editTitle" class="form-label">タイトル</label>
+              <input type="text" id="editTitle" class="form-control" required>
+            </div>
+            <div class="mb-3">
+              <label for="editDescription" class="form-label">内容</label>
+              <input type="text" id="editDescription" class="form-control" required>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">キャンセル</button>
+            <button type="submit" class="btn btn-success">保存</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div><!-- /.container -->
+
+</div>
+
+
+<!-- Bootstrap JS と wheelzoom -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/wheelzoom@4.0.1/wheelzoom.min.js"></script>
+
+<script>
+/* ---------- 画像プレビュー ---------- */
+const previewImage = document.getElementById('previewImage'),
+      modalImage   = document.getElementById('modalImage'),
+      bsImageModal = new bootstrap.Modal(document.getElementById('imageModal'));
+
+document.getElementById('imageModal')
+  .addEventListener('shown.bs.modal', () => wheelzoom(modalImage, {zoom:0.1, maxZoom:5}));
+document.getElementById('imageModal')
+  .addEventListener('hidden.bs.modal', () => { modalImage.dispatchEvent(new CustomEvent('wheelzoom.destroy')); modalImage.style.transform=''; modalImage.src=''; });
+
+previewImage.addEventListener('click', () => { modalImage.src=previewImage.src; bsImageModal.show(); });
+
+/* ---------- DOM 参照 ---------- */
+const tbody      = document.querySelector('#noteTable tbody');
+
+/* ★ 追加モーダル DOM */
+const addBtn     = document.getElementById('addBtn'),
+      addForm    = document.getElementById('addForm'),
+      addTitle   = document.getElementById('addTitle'),
+      addDesc    = document.getElementById('addDescription'),
+      addModal   = new bootstrap.Modal(document.getElementById('addModal'));
+
+/* ★ 編集モーダル DOM */
+const editForm   = document.getElementById('editForm'),
+      editId     = document.getElementById('editId'),
+      editTitle  = document.getElementById('editTitle'),
+      editDesc   = document.getElementById('editDescription'),
+      editModal  = new bootstrap.Modal(document.getElementById('editModal'));
+
+/* フィルタボタン */
+const filterGroup  = document.getElementById('filterGroup');
+let   currentFilter = 'all';
+
+/* ---------- API ユーティリティ ---------- */
+async function api(path, method='GET', body=null) {
+  const opt={method, headers:{'Content-Type':'application/json'}};
+  if(body) opt.body=JSON.stringify(body);
+  const res=await fetch(path,opt);
+  if(!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+
+/* ---------- テーブル描画 ---------- */
+let cacheNotes = [];                 // ←取得済みデータを保持
+const catIcons = {
+  '食事'     : '<i class="bi bi-cup-hot me-1"></i>', // 🟢
+  '観光地'   : '<i class="bi bi-suitcase me-1"></i>', // 🟠
+  'パビリオン': '<i class="bi bi-bank me-1"></i>',
+  'その他'   : '<span class="cat-icon" title="その他">&#x1f7e3;</span>'  // 🟣
+};
+
+function render(){
+  tbody.innerHTML='';
+  const notes = (currentFilter==='all')
+      ? cacheNotes
+      : cacheNotes.filter(n => n.category === currentFilter);
+
+  notes.forEach(n=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`
+      <td class="text-center">${catIcons[n.category] || ''}</td>
+      <td>${n.title}</td>
+      <td>${n.description}</td>
+      <td>${n.author}</td>
+      <td>
+        <button class="btn btn-sm btn-outline-secondary me-1"
+                onclick="openEdit(${n.id},'${n.category}','${n.title.replace(/'/g,"&#39;")}','${n.description.replace(/'/g,"&#39;")}')">編集</button>
+        <button class="btn btn-sm btn-outline-secondary" onclick="removeNote(${n.id})">削除</button>
+      </td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+/* ---------- 初回ロード ---------- */
+async function refresh(){
+  cacheNotes = await api('/api/notes');
+  render();
+}
+window.addEventListener('DOMContentLoaded', refresh);
+
+/* ---------- 追加 ---------- */
+addBtn.addEventListener('click', () => { addForm.reset(); addModal.show(); });
+addForm.addEventListener('submit', async e=>{
+  e.preventDefault();
+  const payload={category:addCategory.value, title:addTitle.value, description:addDesc.value};
+  await api('/api/notes','POST',payload);
+  addModal.hide();
+  refresh();
+});
+
+/* ---------- 編集 ---------- */
+function openEdit(id,cat,title,desc){
+  editId.value=id;
+  editCategory.value=cat;
+  editTitle.value=title;
+  editDesc.value=desc;
+  editModal.show();
+}
+editForm.addEventListener('submit', async e=>{
+  e.preventDefault();
+  const payload={category:editCategory.value, title:editTitle.value, description:editDesc.value};
+  await api('/api/notes/'+editId.value,'PUT',payload);
+  editModal.hide();
+  refresh();
+});
+
+/* ---------- 削除 ---------- */
+async function removeNote(id){
+  if(confirm('削除してよろしいですか？')){
+    await api('/api/notes/'+id,'DELETE');
+    refresh();
+  }
+}
+
+/* ---------- フィルタ ---------- */
+filterGroup.addEventListener('click', e=>{
+  const btn=e.target.closest('button[data-cat]');
+  if(!btn) return;
+  [...filterGroup.children].forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  currentFilter = btn.dataset.cat;
+  render();
+});
+</script>
+</body>
+</html>

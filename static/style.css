@@ -1,0 +1,146 @@
+/* -------------------------------------------------
+   基本フォント & 汎用ユーティリティ
+------------------------------------------------- */
+body           { font-family: 'Noto Sans JP', sans-serif; }
+h1, h2, h3     { font-family: 'Poppins', sans-serif;      }
+
+.transition     { transition: transform .3s cubic-bezier(.4,0,.2,1); }
+.transition:hover { transform: translateY(-4px); }
+
+/* 拡大画像（wheelzoom 用） */
+#modalImage {
+  transition: transform .15s ease-out;
+  cursor: zoom-in;
+}
+
+/* -------------------------------------------------
+   ヘッダ帯（title-band）と中の要素
+------------------------------------------------- */
+
+/* 帯本体 */
+.title-band{
+  background: url("/static/img/header_image.png") center/cover no-repeat; /* 画像を中央寄せでカバー */
+  width:100%;                 /* フル幅 */
+  min-height:180px;           /* 高さはお好みで */
+  position:relative;          /* 子要素の absolute 用 */
+  margin-bottom:2rem;
+  display:flex;               /* 中央寄せ(縦横) */
+  justify-content:center;
+  align-items:center;
+}
+
+/* 半透明黒オーバーレイ */
+.title-band::before{
+  content:"";
+  position:absolute;
+  inset:0;                    /* 全面 */
+  background:rgba(0,0,0,.5);  /* 透明度は画像に合わせて調整 */
+  z-index:0;                  /* 背景レイヤー */
+}
+
+/* タイトル文字 */
+.title-band h1{
+  position:relative;          /* オーバーレイ上に出す */
+  color:#fff;
+  font-weight:600;
+  /* 画面幅で可変するフォントサイズ */
+  font-size:clamp(1.4rem, 4.5vw + .5rem, 2.6rem);
+  letter-spacing:.04em;
+  margin:0;
+  z-index:1;
+}
+
+/* -------------------------------------------------
+   ヘッダ右端リンク
+------------------------------------------------- */
+.header-links{
+  position:absolute;
+  right:1rem;                 /* 右端から少し内側 */
+  top:50%;                    /* 垂直中央 */
+  transform:translateY(-50%);
+  z-index:1;                  /* タイトルと同レベルに */
+}
+
+/* -------------------------------------------------
+   スマホ幅（<576px）でのレイアウト調整
+------------------------------------------------- */
+@media (max-width:575.98px){
+  .header-links{
+    position:static;          /* 通常フローに戻す */
+    transform:none;
+    right:auto;
+    top:auto;
+    margin-top:.75rem;        /* タイトル下に余白 */
+    display:flex;
+    justify-content:center;
+    gap:.5rem;
+  }
+  /* ボタンをスリム化（btn-sm 相当）*/
+  .header-links .btn{
+    padding:.25rem .75rem;
+    font-size:.875rem;
+  }
+}
+
+/* ────────────────────────────────
+   テーブルの書式（行きたいところリスト）
+──────────────────────────────── */
+#noteTable thead th {
+  /* --- 既存の折り返し禁止 + 可変文字サイズがあればここに残す --- */
+  white-space: nowrap;
+  word-break: keep-all;
+  font-size: clamp(0.8rem, 0.9vw + .2rem, 1rem);
+
+  /* --- ヘッダの見た目を変更する部分 --- */
+  color: #6c757d;        /* Bootstrap の text-secondary 相当の灰色 */
+  font-weight: 400;      /* 通常ウェイト = 太字を解除 (同義: normal) */
+}
+
+/* Safari 旧版対策（任意） */
+#noteTable thead th {
+  -webkit-line-break: keep-all;
+}
+
+/* もっと詰めたければ、スマホ幅だけ左右パディングも絞る */
+@media (max-width: 576px) {
+  #noteTable thead th {
+    padding-left: .5rem;
+    padding-right: .5rem;
+  }
+}
+
+
+
+/* ────────────────────────────────
+   画像上のダウンロードアイコン
+──────────────────────────────── */
+.download-icon{
+  z-index: 10;                 /* 画像より高ければ 1 でも OK */
+  position: absolute;          /* 既に指定済みだが念のため */
+  font-size: 1.4rem;
+  color: #0d6efd;
+  background: rgba(255,255,255,.85);
+  border-radius: 50%;
+  padding: .35rem .5rem;
+  transition: background .2s;
+}
+.download-icon:hover{
+  background: rgba(255,255,255,1);   /* ホバーで少し濃く */
+}
+
+/* ---------- ベースフォントのスケーリング ---------- */
+html {
+  font-size: clamp(14px, 1.1vw + 0.5rem, 18px);
+}
+
+/* 見出しのスケーリング（例：h1 と h2）*/
+h1 {
+  /* 1.5rem〜3.0rem の範囲で、画面幅に応じて滑らかに変化 */
+  font-size: clamp(1.5rem, 4vw + 0.5rem, 3rem);
+}
+
+h2 {
+  font-size: clamp(1.25rem, 3vw + 0.5rem, 2.25rem);
+}
+
+.welcome-msg { font-size: .9rem; opacity: .9; }
