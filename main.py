@@ -14,6 +14,8 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 
+from routers import notes as notes_router
+
 from sqlmodel import SQLModel, Field, Session, create_engine, select
 from jose import JWTError, jwt
 from passlib.context import CryptContext
@@ -149,6 +151,7 @@ def on_startup():
 # ----------------------------- Static & Jinja2 -------------------------------
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
+app.include_router(notes_router.router)
 
 # =============================================================================
 # Registration -----------------------------------------------------------------
@@ -262,88 +265,7 @@ async def read_root(
 # =============================================================================
 # Notes API --------------------------------------------------------------------
 # =============================================================================
-@app.get("/api/notes", response_model=List[Note])
-async def list_notes(
-    session: Session = Depends(get_session),
-    current_user: User = Depends(get_current_user),   # 認証必須
-):
-    db_notes = session.exec(
-        select(Note).where(Note.owner_id == current_user.id)
-    ).all()
-    return [
-        Note(**n.dict(exclude={"author"}), author=current_user.username)
-        for n in db_notes
-    ]
-
-
-@app.post("/api/notes", response_model=Note)
-async def create_note(
-    note: Note,
-    session: Session = Depends(get_session),
-    current_user: User = Depends(get_current_user),
-):
-    note.id = None
-    note.owner_id = current_user.id
-    note.author = None
-    session.add(note)
-    session.commit()
-    session.refresh(note)
-    return Note(**note.dict(exclude={"author"}), author=current_user.username)
-
-
-@app.put("/api/notes/{note_id}", response_model=Note)
-async def update_note(
-    note_id: int,
-    data: Note,
-    session: Session = Depends(get_session),
-    current_user: User = Depends(get_current_user),
-):
-    db_note = session.get(Note, note_id)
-    if not db_note:
-        raise HTTPException(status_code=404, detail="Note not found")
-    if db_note.owner_id != current_user.id:
-        raise HTTPException(status_code=403, detail="Not enough permissions")
-
-    db_note.category, db_note.title, db_note.description = (
-        data.category,
-        data.title,
-        data.description,
-    )
-    session.add(db_note)
-    session.commit()
-    session.refresh(db_note)
-    return Note(**db_note.dict(exclude={"author"}), author=current_user.username)
-
-
-@app.delete("/api/notes/{note_id}")
-async def delete_note(
-    note_id: int,
-    session: Session = Depends(get_session),
-    current_user: User = Depends(get_current_user),
-):
-    db_note = session.get(Note, note_id)
-    if not db_note:
-        raise HTTPException(status_code=404, detail="Note not found")
-    if db_note.owner_id != current_user.id:
-        raise HTTPException(status_code=403, detail="Not enough permissions")
-    session.delete(db_note)
-    session.commit()
-    return {"ok": True}
-
-
-@app.get("/api/all_notes", response_model=List[Note])
-async def list_all_notes(
-    session: Session = Depends(get_session),
-    current_user: User = Depends(get_current_user),
-):
-    """Return notes from all users for browsing."""
-    db_notes = session.exec(select(Note)).all()
-    users = session.exec(select(User)).all()
-    user_map = {u.id: u.username for u in users}
-    return [
-        Note(**n.dict(exclude={"author"}), author=user_map.get(n.owner_id))
-        for n in db_notes
-    ]
+# ルーターで実装。詳細は routers/notes.py を参照
 
 
 @app.get("/public", response_class=HTMLResponse)
