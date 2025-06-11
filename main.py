@@ -14,7 +14,6 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 
-from routers import notes as notes_router
 
 from sqlmodel import SQLModel, Field, Session, create_engine, select
 from jose import JWTError, jwt
@@ -151,6 +150,8 @@ def on_startup():
 # ----------------------------- Static & Jinja2 -------------------------------
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
+
+from routers import notes as notes_router
 app.include_router(notes_router.router)
 
 # =============================================================================
