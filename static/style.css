@@ -65,8 +65,13 @@ h1, h2, h3     { font-family: 'Poppins', sans-serif;      }
    スマホ幅（<576px）でのレイアウト調整
 ------------------------------------------------- */
 @media (max-width:575.98px){
+  .title-band{
+    justify-content:flex-start;      /* タイトルを左寄せに */
+  }
   .title-band h1{
-    font-size:1.3rem;         /* タイトルをやや小さく */
+    font-size:1.6rem;                /* タイトルを大きく */
+    margin-left:1rem;                /* 少し左寄せ */
+    margin-right:1rem;               /* 余白を調整 */
   }
   .header-links{
     position:static;          /* 通常フローに戻す */
