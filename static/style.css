@@ -65,6 +65,9 @@ h1, h2, h3     { font-family: 'Poppins', sans-serif;      }
    スマホ幅（<576px）でのレイアウト調整
 ------------------------------------------------- */
 @media (max-width:575.98px){
+  .title-band h1{
+    font-size:1.3rem;         /* タイトルをやや小さく */
+  }
   .header-links{
     position:static;          /* 通常フローに戻す */
     transform:none;
@@ -75,10 +78,10 @@ h1, h2, h3     { font-family: 'Poppins', sans-serif;      }
     justify-content:center;
     gap:.5rem;
   }
-  /* ボタンをスリム化（btn-sm 相当）*/
+  /* ボタンをスリム化（btn-sm より小さめ）*/
   .header-links .btn{
-    padding:.25rem .75rem;
-    font-size:.875rem;
+    padding:.25rem .5rem;
+    font-size:.75rem;
   }
 }
 
