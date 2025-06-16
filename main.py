@@ -223,6 +223,28 @@ async def login(request: Request, session: Session = Depends(get_session)):
     return response
 
 
+@app.post("/guest-login")
+async def guest_login(session: Session = Depends(get_session)):
+    """Log in as a guest user without password."""
+    username = "guest"
+    user = session.exec(select(User).where(User.username == username)).first()
+    if not user:
+        user = User(username=username, hashed_password=get_password_hash(secrets.token_hex(8)))
+        session.add(user)
+        session.commit()
+
+    access_token = create_access_token({"sub": user.username})
+    response = RedirectResponse("/", status_code=303)
+    response.set_cookie(
+        "access_token",
+        access_token,
+        httponly=True,
+        max_age=ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+        path="/",
+    )
+    return response
+
+
 @app.get("/logout")
 async def logout():
     response = RedirectResponse("/login", status_code=303)
