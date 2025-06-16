@@ -114,3 +114,12 @@ def test_view_all_notes(client):
     assert len(notes) == 2
     authors = {n["author"] for n in notes}
     assert {"alice", "bob"} == authors
+
+
+def test_guest_login(client):
+    resp = client.post("/guest-login", follow_redirects=False)
+    assert resp.status_code == 303
+    token = resp.cookies.get("access_token")
+    assert token
+    resp = client.get("/api/notes", headers=auth_header(token))
+    assert resp.status_code == 200
